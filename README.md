@@ -8,7 +8,7 @@ To initialize the project run:
 
 `cd build`
 
-`cmake ..`
+`cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ..`
 
 This will initialize the make file and download Raylib. This is only needed to be done once.
 
