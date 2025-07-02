@@ -1,11 +1,17 @@
+#include <stdio.h>
 #include <stdint.h>
 
 #include "raylib.h"
 #include "graphics.h"
 
+#define EVENTFILE "/home/karp/CodeSpaces/personal/eventfulindustries/line-tracker/include/test.h" // Change this to your event file path
+#include "linetracking.h"
+
 #define LINEWIDTH 16
 
 int main(){
+
+    printf("Event count: %lu\n", event_count);
 
     InitWindow(640, 480, "event vision");
 
