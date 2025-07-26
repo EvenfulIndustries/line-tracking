@@ -1,4 +1,4 @@
-
+#include <stdlib.h>
 #include <stdint.h>
 
 #include "graphics.h"
@@ -6,6 +6,12 @@
 
 
 Texture2D LoadTextureFromArray(uint8_t *eventBuffer, uint32_t bufferWidth, uint32_t bufferHeight) {
+
+    //uint8_t buffer[RESOLUTION];
+    //for(size_t i = 0; i < RESOLUTION; i++) {
+    //    buffer[i] = 255 * ((double)eventBuffer[i] / (double)UINT16_MAX);
+    //}
+
     // Create an image from the event buffer
     Image image = {0};
     image.data = eventBuffer;
