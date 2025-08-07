@@ -1,4 +1,5 @@
 #define OLD_EVENT_THRESHOLD 40 miliseconds SOMEHOW 
+#define LINE_LENGTH_MINIMUM 70 //pixels
 #define MAX_EVENTS_IN_LINE 100
 #define MAX_EVENTS_IN_CLUSTER 100
 #define NULL_EVENT_TIMESTAMP 0 //decides the timestamp for the null event.
@@ -26,9 +27,10 @@ struct cluster
 struct line
 {
 	event[] containedEvents = new event[MAX_EVENTS_IN_LINE] //arbitrary
-	int16 lineLength, //needs to be at least 640
+	int16 lineLength, //needs to be at least 640.
 	int16 lineAngleHough, //needs to be capable of holding 360
-	int16 lineDistanceHough //needs to be capable of holding 640/2
+	int16 lineDistanceHough, //needs to be capable of holding 640/2
+	int8 state //0 = null, 1 = initializing, 2 = active, 3 = hibernating
 };
 
 cluster[] clusterArray = new cluster[20];
@@ -101,14 +103,28 @@ void periodicCleanup(event latestEvent)
 {
 	//LINES
 
-	//remove old events
 	for (int i = 0 ; i < lineArray.length, i++)
 	{
+		//IF line is null, ignore
+		if (lineArray[i].state = 0)
+			continue;
+
 		//run through contained events in each line
 		for (int j = 0 ; j < lineArray[i].containedEvents.length, j++)
 		{
+			//REMOVE OLD EVENTS
 			if (latestEvent.timestamp - lineArray[i].containedEvents[j].timestamp > OLD_EVENT_THRESHOLD)
-				lineArray[i].containedEvents[j].timestamp = 0; //nulled it
+				lineArray[i].containedEvents[j].timestamp = 0; //null the event
+			//UPDATE PLANE ESTIMATE
+			updatePlaneEstimate(lineArray[i]);
+			
+			//DELETE LINES TOO SHORT
+			if (lineArray[i].lineLength < LINE_LENGTH_LIMIT)
+				lineArray[i].state = 0; //null the line
+			
+			
+			
 		}
+
 	}
 }
