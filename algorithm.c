@@ -1,3 +1,11 @@
+#define OLD_EVENT_THRESHOLD 40 miliseconds SOMEHOW 
+#define MAX_EVENTS_IN_LINE 100
+#define MAX_EVENTS_IN_CLUSTER 100
+#define NULL_EVENT_TIMESTAMP 0 //decides the timestamp for the null event.
+
+//EXPLANATION: cause we cant null an entry of an array in C, any events with the timestamp 0 are considered null & gone.
+
+
 int32[][] SAE = new int32[640][480];
 
 struct event
@@ -9,7 +17,7 @@ struct event
 
 struct cluster
 {
-	event[] containedEvents = new event[100] //arbitrary
+	event[] containedEvents = new event[MAX_EVENTS_IN_CLUSTER] //arbitrary
 	int16 inferredLineLength, //needs to be at least 640
 	int16 inferredLineAngleHough, //needs to be capable of holding 360
 	int16 inferredLineDistanceHough //needs to be capable of holding 640/2
@@ -17,7 +25,7 @@ struct cluster
 
 struct line
 {
-	event[] containedEvents = new event[100] //arbitrary
+	event[] containedEvents = new event[MAX_EVENTS_IN_LINE] //arbitrary
 	int16 lineLength, //needs to be at least 640
 	int16 lineAngleHough, //needs to be capable of holding 360
 	int16 lineDistanceHough //needs to be capable of holding 640/2
@@ -26,20 +34,20 @@ struct line
 cluster[] clusterArray = new cluster[20];
 line[] lineArray = new cluster[20];
 
-int isItGarbageDayYet = 0;
-int garbageDay = 5;
+int runPeriodicTicker = 0;
+int runPeriodicLimit = 5;
 
 
 void OnReceiveEvent(event receivedEvent)
 {
 	//first check if it's garbage day
-	if (isItGarbageDayYet == garbageDay)
+	if (runPeriodicTicker == runPeriodicLimit)
 	{
-		isItGarbageDayYet = 0;
-		garbageCollector();
+		runPeriodicTicker = 0;
+		periodicCleanup(receivedEvent); //needed to know current timestamp
 	}
 	else
-		isItGarbageDayYet++;
+		runPeriodicTicker++;
 	
 	//insert in SAE
 	SAE[event.x, event.y] = event.timestamp;
@@ -87,4 +95,20 @@ void OnReceiveEvent(event receivedEvent)
 	TrySpawnCluster(event.x, event.y);
 
 	return;
+}
+
+void periodicCleanup(event latestEvent)
+{
+	//LINES
+
+	//remove old events
+	for (int i = 0 ; i < lineArray.length, i++)
+	{
+		//run through contained events in each line
+		for (int j = 0 ; j < lineArray[i].containedEvents.length, j++)
+		{
+			if (latestEvent.timestamp - lineArray[i].containedEvents[j].timestamp > OLD_EVENT_THRESHOLD)
+				lineArray[i].containedEvents[j].timestamp = 0; //nulled it
+		}
+	}
 }
